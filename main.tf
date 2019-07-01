@@ -1,11 +1,11 @@
 data "aws_iam_policy_document" "assume_role" {
   statement {
     actions = [
-      "sts:AssumeRole"
+      "sts:AssumeRole",
     ]
     principals {
       identifiers = [
-        "lambda.amazonaws.com"
+        "lambda.amazonaws.com",
       ]
       type = "Service"
     }
@@ -13,8 +13,8 @@ data "aws_iam_policy_document" "assume_role" {
 }
 
 resource "aws_iam_role" "function" {
-  name = "${var.name}"
-  assume_role_policy = "${data.aws_iam_policy_document.assume_role.json}"
+  name               = var.name
+  assume_role_policy = data.aws_iam_policy_document.assume_role.json
 }
 
 resource "aws_cloudwatch_log_group" "log_group" {
@@ -26,113 +26,115 @@ data "aws_iam_policy_document" "function" {
   statement {
     actions = [
       "logs:CreateLogStream",
-      "logs:PutLogEvents"
+      "logs:PutLogEvents",
     ]
     resources = [
-      "${aws_cloudwatch_log_group.log_group.arn}"
+      aws_cloudwatch_log_group.log_group.arn,
     ]
-    sid       = "AllowLogWriting"
+    sid = "AllowLogWriting"
   }
   statement {
-    actions   = [
+    actions = [
       "kms:Decrypt",
       "kms:Encrypt",
-      "kms:GenerateDataKey*"
+      "kms:GenerateDataKey*",
     ]
     resources = [
-      "${var.kms_key_arn}"
+      var.kms_key_arn,
     ]
-    sid       = "AllowEcryptDecryptEnvVars"
+    sid = "AllowEcryptDecryptEnvVars"
   }
   statement {
-    actions   = [
+    actions = [
       "sns:Publish",
-      "sqs:SendMessage"
+      "sqs:SendMessage",
     ]
     resources = [
-      "${var.dead_letter_arn}"
+      var.dead_letter_arn,
     ]
-    sid       = "AllowDeadLetterWriting"
+    sid = "AllowDeadLetterWriting"
   }
   statement {
-    actions   = [
+    actions = [
       "xray:PutTraceSegments",
-      "xray:PutTelemetryRecords"
+      "xray:PutTelemetryRecords",
     ]
     resources = [
-      "*"
+      "*",
     ]
-    sid       = "AllowWritingXRay"
+    sid = "AllowWritingXRay"
   }
 }
 
 resource "aws_iam_role_policy" "log_group_access" {
-  name    = "basic-access"
-  policy  = "${data.aws_iam_policy_document.function.json}"
-  role    = "${aws_iam_role.function.id}"
+  name   = "basic-access"
+  policy = data.aws_iam_policy_document.function.json
+  role   = aws_iam_role.function.id
 }
 
 resource "aws_iam_role_policy_attachment" "managed_policy" {
-  count       = "${local.policy_arns_count}"
-  policy_arn  = "${var.policy_arns[count.index]}"
-  role        = "${aws_iam_role.function.name}"
+  count      = local.policy_arns_count
+  policy_arn = var.policy_arns[count.index]
+  role       = aws_iam_role.function.name
 }
 
 data "aws_s3_bucket_object" "function_package" {
-  bucket      = "${var.s3_bucket}"
-  key         = "${var.s3_object_key}"
+  bucket = var.s3_bucket
+  key    = var.s3_object_key
 }
 
 resource "aws_lambda_function" "function" {
   dead_letter_config {
-    target_arn = "${var.dead_letter_arn}"
+    target_arn = var.dead_letter_arn
   }
-  depends_on = ["aws_cloudwatch_log_group.log_group"]
+  depends_on = [aws_cloudwatch_log_group.log_group]
   environment {
-    variables = "${var.environment_variables}"
+    variables = var.environment_variables
   }
-  function_name     = "${var.name}"
-  handler           = "${var.handler}"
-  kms_key_arn       = "${var.kms_key_arn}"
+  function_name = var.name
+  handler       = var.handler
+  kms_key_arn   = var.kms_key_arn
   lifecycle {
     ignore_changes = [
-      "last_modified",
-      "qualified_arn",
-      "s3_object_version",
-      "version"
+      last_modified,
+      qualified_arn,
+      s3_object_version,
+      version,
     ]
   }
-  memory_size       = "${var.memory_size}"
+  memory_size       = var.memory_size
   publish           = true
-  role              = "${aws_iam_role.function.arn}"
-  runtime           = "${var.runtime}"
-  s3_bucket         = "${data.aws_s3_bucket_object.function_package.bucket}"
-  s3_key            = "${data.aws_s3_bucket_object.function_package.key}"
-  s3_object_version = "${data.aws_s3_bucket_object.function_package.version_id}"
-  timeout           = "${var.timeout}"
+  role              = aws_iam_role.function.arn
+  runtime           = var.runtime
+  s3_bucket         = data.aws_s3_bucket_object.function_package.bucket
+  s3_key            = data.aws_s3_bucket_object.function_package.key
+  s3_object_version = data.aws_s3_bucket_object.function_package.version_id
+  timeout           = var.timeout
 }
 
 data "aws_iam_policy_document" "invoke_function" {
   statement {
-    actions   = [
-      "lambda:InvokeFunction"
+    actions = [
+      "lambda:InvokeFunction",
     ]
     resources = [
-      "${aws_lambda_function.function.arn}"
+      aws_lambda_function.function.arn,
     ]
-    sid       = "AllowInvoke"
+    sid = "AllowInvoke"
   }
 }
 
 resource "aws_iam_policy" "invoke_function" {
   name_prefix = "${var.name}-invoke"
-  policy      = "${data.aws_iam_policy_document.invoke_function.json}"
+  policy      = data.aws_iam_policy_document.invoke_function.json
 }
 
 resource "aws_iam_role_policy_attachment" "invoke_function" {
-  count       = "${var.allow_self_invocation ? 1 : 0}"
-  policy_arn  = "${aws_iam_policy.invoke_function.arn}"
-  role        = "${aws_iam_role.function.name}"
+  count      = var.allow_self_invocation ? 1 : 0
+  policy_arn = aws_iam_policy.invoke_function.arn
+  role       = aws_iam_role.function.name
 }
 
-data "aws_region" "current" {}
+data "aws_region" "current" {
+}
+
