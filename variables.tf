@@ -44,11 +44,6 @@ variable "policy_arns" {
   type        = list(string)
 }
 
-variable "policy_arns_count" {
-  default     = 0
-  description = "The number of policy arns to attach"
-  type        = number
-}
 
 variable "runtime" {
   description = "The runtime the function should use"
