@@ -125,8 +125,8 @@ data "aws_iam_policy_document" "invoke_function" {
 }
 
 resource "aws_iam_policy" "invoke_function" {
-  name_prefix = "${var.name}-invoke"
-  policy      = data.aws_iam_policy_document.invoke_function.json
+  name   = "${var.name}-invoke"
+  policy = data.aws_iam_policy_document.invoke_function.json
 }
 
 resource "aws_iam_role_policy_attachment" "invoke_function" {
