@@ -27,6 +27,12 @@ variable "kms_key_arn" {
   type        = string
 }
 
+variable "layers" {
+  default     = []
+  description = "The list of lambda layers to be attached"
+  type        = list(string)
+}
+
 variable "memory_size" {
   default     = 128
   description = "The memory allocation for the function"
