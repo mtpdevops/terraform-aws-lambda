@@ -94,6 +94,7 @@ resource "aws_lambda_function" "function" {
   function_name = var.name
   handler       = var.handler
   kms_key_arn   = var.kms_key_arn
+  layers = var.layers
   lifecycle {
     ignore_changes = [
       last_modified,
