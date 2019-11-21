@@ -78,6 +78,12 @@ resource "aws_iam_role_policy_attachment" "managed_policy" {
   role       = aws_iam_role.function.name
 }
 
+resource "aws_iam_role_policy_attachment" "vpc_access" {
+  count      = length(var.vpc_config) < 1 ? 0 : 1
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole"
+  role       = aws_iam_role.function.name
+}
+
 data "aws_s3_bucket_object" "function_package" {
   bucket = var.s3_bucket
   key    = var.s3_object_key
@@ -94,7 +100,7 @@ resource "aws_lambda_function" "function" {
   function_name = var.name
   handler       = var.handler
   kms_key_arn   = var.kms_key_arn
-  layers = var.layers
+  layers        = var.layers
   lifecycle {
     ignore_changes = [
       last_modified,
@@ -103,10 +109,20 @@ resource "aws_lambda_function" "function" {
       version,
     ]
   }
-  memory_size       = var.memory_size
-  publish           = true
-  role              = aws_iam_role.function.arn
-  runtime           = var.runtime
+  memory_size = var.memory_size
+  publish     = true
+  role        = aws_iam_role.function.arn
+  runtime     = var.runtime
+
+  dynamic "vpc_config" {
+    for_each = length(var.vpc_config) < 1 ? [] : [var.vpc_config]
+    content {
+      security_group_ids = vpc_config.value.security_group_ids
+      subnet_ids         = vpc_config.value.subnet_ids
+    }
+  }
+
+
   s3_bucket         = data.aws_s3_bucket_object.function_package.bucket
   s3_key            = data.aws_s3_bucket_object.function_package.key
   s3_object_version = data.aws_s3_bucket_object.function_package.version_id
