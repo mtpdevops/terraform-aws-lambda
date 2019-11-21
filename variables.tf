@@ -72,3 +72,8 @@ variable "timeout" {
   type        = number
 }
 
+variable "vpc_config" {
+  description = "Provide this to allow your function to access your VPC. Both 'subnet_ids' and 'security_group_ids' are a list of strings are required to enable vpc)."
+  type        = map(list(string))
+  default     = {}
+}
