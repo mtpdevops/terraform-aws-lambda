@@ -9,6 +9,18 @@ variable "dead_letter_arn" {
   type        = string
 }
 
+variable "destinations_on_failure_arn" {
+  description = "Add destination to function. An ARN of SQS queue, SNS topic, Lambda function, or EventBridge event bus. Added as on_failure aysynchronous invocation"
+  type        = string
+  default     = ""
+}
+
+variable "destinations_on_success_arn" {
+  description = "Add destination to function. An ARN of SQS queue, SNS topic, Lambda function, or EventBridge event bus. Added as on_success aysynchronous invocation"
+  type        = string
+  default     = ""
+}
+
 variable "environment_variables" {
   default = {
     DEFAULT = "default"

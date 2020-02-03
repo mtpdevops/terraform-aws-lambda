@@ -154,4 +154,3 @@ resource "aws_iam_role_policy_attachment" "invoke_function" {
 
 data "aws_region" "current" {
 }
-
