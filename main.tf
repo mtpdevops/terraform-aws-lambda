@@ -90,6 +90,7 @@ data "aws_s3_bucket_object" "function_package" {
 }
 
 resource "aws_lambda_function" "function" {
+  description = var.description
   dead_letter_config {
     target_arn = var.dead_letter_arn
   }
