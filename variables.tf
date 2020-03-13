@@ -4,6 +4,12 @@ variable "allow_self_invocation" {
   type        = bool
 }
 
+variable "description" {
+  default     = ""
+  description = "Description of what your Lambda Function does"
+  type        = string
+}
+
 variable "dead_letter_arn" {
   description = "The arn for the SNS topic that handles dead letters"
   type        = string
