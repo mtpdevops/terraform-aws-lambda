@@ -69,6 +69,13 @@ variable "policy_arns" {
 }
 
 
+ variable "log_retention_days" {
+  default     = 7
+  description = "The number of days you want to retain log events in the specified log group"
+  type        = number
+}
+
+
 variable "runtime" {
   description = "The runtime the function should use"
   type        = string
