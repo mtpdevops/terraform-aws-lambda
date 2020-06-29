@@ -69,7 +69,7 @@ variable "policy_arns" {
 }
 
 
- variable "retention_in_days" {
+ variable "log_retention_days" {
   default     = 7
   description = "The number of days you want to retain log events in the specified log group"
   type        = number

@@ -19,7 +19,7 @@ resource "aws_iam_role" "function" {
 
 resource "aws_cloudwatch_log_group" "log_group" {
   name              = "/aws/lambda/${var.name}"
-  retention_in_days = var.retention_in_days
+  retention_in_days = var.log_retention_days
 }
 
 data "aws_iam_policy_document" "function" {
